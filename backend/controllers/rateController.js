@@ -7,46 +7,58 @@ const rateCalculate = async (req, res, next) => {
   try {
     const { origin, destination, weight, invoiceValue, riskType } = req.body;
 
-    // 1. Get block mappings for origin and destination
-    const originBlock = await CityBlockMapping.findOne({
-      cities: { $in: [origin] },
+    let originBlock = await CityBlockMapping.findOne({
+      cities: { $in: [origin] }
     })
       .select("block")
       .lean();
-    const destinationBlock = await CityBlockMapping.findOne({
-      cities: { $in: [destination] },
+
+    if (!originBlock) {
+      originBlock = await CityBlockMapping.findOne({ block: origin })
+        .select("block")
+        .lean();
+    }
+
+    let destinationBlock = await CityBlockMapping.findOne({
+      cities: { $in: [destination] }
     })
       .select("block")
       .lean();
+
+    if (!destinationBlock) {
+      destinationBlock = await CityBlockMapping.findOne({ block: destination })
+        .select("block")
+        .lean();
+    }
 
     if (!originBlock || !destinationBlock) {
       return next(new Error("Invalid origin or destination"));
     }
 
-    // 2. Get base freight from rate matrix
+    // 1} Get base freight from rate matrix
     const rateMatrix = await RateMatrix.findOne({
       originBlock: originBlock.block,
       destinationBlock: destinationBlock.block,
     }).lean();
 
     if (!rateMatrix) {
-      return next(new Error("No rate found for this route"));
+      return next(new Error("No rate found for this Block"));
     }
 
-    // 3. Calculate base freight
+    // 2} Calculate base freight
     const minChargeableWeight = 40;
     const minFreightCharge = 400;
     const baseFreight =
       Math.max(weight, minChargeableWeight) * rateMatrix.baseRate;
     const actualBaseFreight = Math.max(baseFreight, minFreightCharge);
 
-    // 4. Calculate fuel surcharge (20% of base freight)
+    // 3} Calculate fuel surcharge (20% of base freight)
     const fuelSurcharge = actualBaseFreight * 0.2;
 
-    // 5. Calculate DKT charge
+    // 4} Calculate DKT charge
     const dktCharge = 100;
 
-    // 6. Calculate FOV charge
+    // 5} Calculate FOV charge
     let fovCharge;
     if (riskType === "owner") {
       fovCharge = Math.max(invoiceValue * 0.05, 50);
@@ -56,12 +68,12 @@ const rateCalculate = async (req, res, next) => {
       return next(new Error("Invalid riskType"));
     }
 
-    // 7. ODA Charges
+    // 6} ODA Charges
     let odaCharge = 0;
     const odaThreshold = Math.max(750, weight * 5);
-    odaCharge = Math.max(odaCharge, odaThreshold);
+    odaCharge = odaThreshold;
 
-    // 8. Calculate total cost
+    // 7} Calculate total cost
     const totalCost =
       actualBaseFreight + fuelSurcharge + dktCharge + fovCharge + odaCharge;
 
@@ -77,6 +89,8 @@ const rateCalculate = async (req, res, next) => {
     next(error);
   }
 }
+
+
 
 
 

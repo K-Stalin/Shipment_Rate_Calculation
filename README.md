@@ -75,7 +75,7 @@ This API calculates shipment rate based on origin , destination , weight and oth
 -  **Response**:
    ```json
    {
-    "message":""Rate matrix updated successfully""
+    "message":"Rate matrix updated successfully"
    }
 
 ### 5.`/rate/rate-fetch` [GET]
@@ -94,7 +94,7 @@ This API calculates shipment rate based on origin , destination , weight and oth
 
 1. Clone the repository:
     ```
-    git clone https://github.com/username/shipment-rate-calculation.git
+    git clone [https://github.com/username/shipment-rate-calculation.git](https://github.com/K-Stalin/Shipment_Rate_Calculation.git)
 
 2. Install dependencies:
      ```

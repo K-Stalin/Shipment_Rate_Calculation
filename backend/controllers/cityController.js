@@ -25,9 +25,11 @@ const addCity = async(req,res,next)=>{
   try {
     const { city, block } = req.body;
 
-   
     let cityBlockExist = await CityBlockMapping.findOne({ block });
-
+    let found = false
+     if(cityBlockExist) {
+        found = true;
+     }
     if (!cityBlockExist) {
       cityBlockExist = new CityBlockMapping({ block, cities: [] });
     }
@@ -36,12 +38,21 @@ const addCity = async(req,res,next)=>{
       cityBlockExist.cities.push(city);
     }
 
-    await cityBlockExist.save();   // Added
-    res.status(201).json({ message: "City added to block successfully" });
+      
+    await cityBlockExist.save(); // Added
+     if(found)
+     {
+    res.status(201).json({ message: "City added to block successfully" });       
+     }
+     else{
+    res.status(201).json({ message: "City added to Newly created block successfully" });       
+     }
+    
   } catch (error) {
     return next(error);
   }
 }
+
 
 
 

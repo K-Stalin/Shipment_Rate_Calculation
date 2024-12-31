@@ -63,7 +63,7 @@ This API calculates shipment rate based on origin , destination , weight and oth
   "message": "City added to block successfully"
    }
 
-### 4.'/rate/update-rate' [POST]
+### 4.`/rate/update-rate` [POST]
 -  **Description**:Update rate price in DB
 -  **Request Body**:
    ```json
